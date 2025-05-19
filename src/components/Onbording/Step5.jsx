@@ -1,13 +1,183 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import styled, { keyframes } from 'styled-components';
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const Container = styled.div`
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  font-family: 'Inter', sans-serif;
+`;
+
+const Header = styled.header`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 4rem;
+  background: white;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
+`;
+
+const MainContent = styled.main`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: ${fadeIn} 0.6s ease-out;
+`;
+
+const StepIndicator = styled.div`
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+`;
+
+const Title = styled.h1`
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  color: #0f172a;
+  text-align: center;
+  background: linear-gradient(45deg, #00b894, #007bff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
+`;
+
+const Instruction = styled.p`
+  font-size: 1.25rem;
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  text-align: center;
+  max-width: 600px;
+`;
+
+const HighlightGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 2rem;
+`;
+
+const HighlightButton = styled.button`
+  padding: 1.25rem;
+  border-radius: 1.5rem;
+  border: 2px solid ${props => props.selected ? '#00b894' : '#e2e8f0'};
+  background: ${props => props.selected ? '#f0fdfa' : 'white'};
+  color: ${props => props.selected ? '#00b894' : '#475569'};
+  font-weight: 600;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,184,148,0.1);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, #00b89430, #007bff30);
+    opacity: ${props => props.selected ? 0.1 : 0};
+    transition: opacity 0.3s ease;
+  }
+`;
+
+const NavigationFooter = styled.footer`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 4rem;
+  border-top: 2px solid #e2e8f0;
+  background: white;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+  }
+`;
+
+const NavButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2.5rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &.next {
+    background: linear-gradient(45deg, #00b894, #007bff);
+    color: white;
+    border: none;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,184,148,0.3);
+    }
+
+    &:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+    }
+  }
+
+  &.back {
+    background: none;
+    color: #64748b;
+    border: none;
+    
+    &:hover {
+      color: #00b894;
+    }
+  }
+`;
 
 const adventureHighlights = [
-  'Thrilling',
-  'Scenic',
-  'Beginner-friendly',
-  'Challenging',
-  'Wildlife-rich',
-  'Eco-friendly'
+  'Thrilling Experience', 'Scenic Views', 'Beginner Friendly', 
+  'Advanced Challenge', 'Wildlife Encounters', 'Eco Conscious',
+  'Historical Sites', 'Night Adventure', 'Family Friendly',
+  'Photography Hotspot', 'Water Activities', 'Mountain Trek'
 ];
 
 function Step5() {
@@ -15,190 +185,73 @@ function Step5() {
   const navigate = useNavigate();
 
   const handleSelect = (highlight) => {
-    if (selected.includes(highlight)) {
-      setSelected(selected.filter(h => h !== highlight));
-    } else if (selected.length < 2) {
-      setSelected([...selected, highlight]);
-    }
+    setSelected(prev => 
+      prev.includes(highlight) 
+        ? prev.filter(h => h !== highlight) 
+        : prev.length < 2 ? [...prev, highlight] : prev
+    );
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      backgroundColor: '#f9fafb',
-      fontFamily: `'Helvetica Neue', Helvetica, Arial, sans-serif`,
-      color: '#222'
-    }}>
-      {/* Top Bar */}
-      <header style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '24px 40px',
-        backgroundColor: '#fff',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1000
-      }}>
-        <img src="/logo.png" alt="Logo" style={{ height: 36, objectFit: 'contain' }} />
+    <Container>
+      <Header>
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <path d="M20 4L36 36H4L20 4Z" fill="#00b894"/>
+        </svg>
         <button
           style={{
-            border: '1px solid #222',
-            borderRadius: 24,
-            padding: '10px 28px',
-            fontWeight: 600,
-            background: '#fff',
-            fontSize: 16,
-            cursor: 'pointer',
-            transition: 'background-color 0.3s, box-shadow 0.3s'
+            border: '2px solid #e2e8f0',
+            borderRadius: '2rem',
+            padding: '0.75rem 1.5rem',
+            fontWeight: 500,
+            background: 'white',
+            color: '#64748b',
+            cursor: 'pointer'
           }}
         >
           Save & exit
         </button>
-      </header>
+      </Header>
 
-      {/* Main Content */}
-      <main style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '40px 20px',
-        maxWidth: '1200px',
-        margin: '0 auto'
-      }}>
-        <div style={{
-          width: '100%',
-          maxWidth: '800px',
-          textAlign: 'center'
-        }}>
-          {/* Step Indicator */}
-          <div style={{
-            fontSize: 18,
-            color: '#555',
-            marginBottom: 8
-          }}>
-            Step 5
-          </div>
+      <MainContent>
+        <StepIndicator>Step 5 of 12</StepIndicator>
+        <Title>Craft Your Adventure Identity</Title>
+        <Instruction>
+          Select up to 2 defining characteristics that best represent your unique experience
+        </Instruction>
 
-          {/* Main Heading */}
-          <h1 style={{
-            fontSize: '2.5rem',
-            fontWeight: 700,
-            marginBottom: 24,
-            lineHeight: 1.2,
-            color: '#222'
-          }}>
-            Next, let's describe your adventure
-          </h1>
+        <HighlightGrid>
+          {adventureHighlights.map((highlight) => {
+            const isSelected = selected.includes(highlight);
+            const isDisabled = !isSelected && selected.length >= 2;
 
-          {/* Subtext */}
-          <p style={{
-            fontSize: 20,
-            color: '#555',
-            marginBottom: 32,
-            padding: '0 10px',
-            lineHeight: 1.5
-          }}>
-            Choose up to 2 highlights. We'll use these to get your description started.
-          </p>
+            return (
+              <HighlightButton
+                key={highlight}
+                onClick={() => handleSelect(highlight)}
+                selected={isSelected}
+                disabled={isDisabled}
+              >
+                {highlight}
+              </HighlightButton>
+            );
+          })}
+        </HighlightGrid>
+      </MainContent>
 
-          {/* Highlights Buttons */}
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '16px',
-            justifyContent: 'center',
-            marginBottom: 40
-          }}>
-            {adventureHighlights.map((highlight) => {
-              const isSelected = selected.includes(highlight);
-              const isDisabled = !isSelected && selected.length >= 2;
-
-              return (
-                <button
-                  key={highlight}
-                  onClick={() => handleSelect(highlight)}
-                  disabled={isDisabled}
-                  style={{
-                    padding: '12px 24px',
-                    borderRadius: '24px',
-                    border: isSelected ? '2px solid #007bff' : '1px solid #ccc',
-                    backgroundColor: isSelected ? '#e6f0ff' : '#fff',
-                    color: '#222',
-                    fontSize: 18,
-                    fontWeight: isSelected ? 600 : 400,
-                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                    boxShadow: isSelected ? '0 4px 8px rgba(0,0,0,0.1)' : 'none',
-                    transition: 'all 0.2s',
-                    minWidth: 140
-                  }}
-                >
-                  {highlight}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </main>
-
-      {/* Bottom Navigation */}
-      <footer style={{
-        borderTop: '4px solid #222',
-        padding: '24px 40px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        boxShadow: '0 -2px 8px rgba(0,0,0,0.1)',
-        flexWrap: 'wrap'
-      }}>
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#222',
-            fontSize: 18,
-            textDecoration: 'underline',
-            cursor: 'pointer',
-            padding: '8px 16px',
-            transition: 'color 0.2s'
-          }}
-          onMouseOver={(e) => (e.target.style.color = '#007bff')}
-          onMouseOut={(e) => (e.target.style.color = '#222')}
-        >
-          Back
-        </button>
-        <button
+      <NavigationFooter>
+        <NavButton className="back" onClick={() => navigate(-1)}>
+          ← Back
+        </NavButton>
+        <NavButton
+          className="next"
           onClick={() => navigate('/step-6')}
           disabled={selected.length === 0}
-          style={{
-            backgroundColor: '#222',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 12,
-            fontSize: 20,
-            fontWeight: 600,
-            padding: '12px 48px',
-            cursor: selected.length === 0 ? 'not-allowed' : 'pointer',
-            opacity: selected.length === 0 ? 0.5 : 1,
-            transition: 'background-color 0.2s, opacity 0.2s'
-          }}
-          onMouseOver={(e) => {
-            if (selected.length > 0) e.target.style.backgroundColor = '#000'
-          }}
-          onMouseOut={(e) => {
-            if (selected.length > 0) e.target.style.backgroundColor = '#222'
-          }}
         >
-          Next
-        </button>
-      </footer>
-    </div>
+          Continue →
+        </NavButton>
+      </NavigationFooter>
+    </Container>
   );
 }
 

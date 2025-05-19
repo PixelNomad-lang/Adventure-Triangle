@@ -1,0 +1,26 @@
+{
+  "suggested": [
+    { "language": "English", "region": "United States" },
+    { "language": "English", "region": "United Kingdom" },
+    { "language": "हिंदी", "region": "भारत" },
+    { "language": "ಕನ್ನಡ", "region": "ಭಾರತ" },
+    { "language": "मराठी", "region": "भारत" }
+  ],
+  "all": [
+    { "language": "English", "region": "India" },
+    { "language": "Deutsch", "region": "Deutschland" },
+    { "language": "Español", "region": "España" },
+    { "language": "Français", "region": "France" },
+    { "language": "Português", "region": "Brasil" },
+    { "language": "中文", "region": "中国" },
+    { "language": "日本語", "region": "日本" },
+    { "language": "한국어", "region": "대한민국" },
+    { "language": "Italiano", "region": "Italia" },
+    { "language": "Nederlands", "region": "Nederland" },
+    { "language": "Bahasa Indonesia", "region": "Indonesia" },
+    { "language": "Русский", "region": "Россия" },
+    { "language": "Türkçe", "region": "Türkiye" },
+    { "language": "ภาษาไทย", "region": "ไทย" },
+    { "language": "Polski", "region": "Polska" }
+  ]
+}

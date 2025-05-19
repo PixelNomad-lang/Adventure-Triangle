@@ -1,20 +1,218 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import styled, { keyframes } from 'styled-components';
+
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const Container = styled.div`
+  min-height: 100vh;
+  background: #f8f9fa;
+  font-family: 'Inter', sans-serif;
+  position: relative;
+`;
+
+const Header = styled.header`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background: white;
+  box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
+`;
+
+const ProgressBar = styled.div`
+  height: 4px;
+  background: #e9ecef;
+  border-radius: 2px;
+  position: relative;
+  margin: 2rem 0;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: ${props => props.progress}%;
+    background: #00b894;
+    transition: width 0.5s ease;
+  }
+`;
+
+const AdventureGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+`;
+
+const AdventureCard = styled.button`
+  padding: 1.5rem;
+  border: 2px solid ${props => props.selected ? '#00b894' : '#e9ecef'};
+  background: ${props => props.selected ? '#f0faf8' : 'white'};
+  border-radius: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,184,148,0.1);
+  }
+
+  span {
+    font-weight: 600;
+    color: ${props => props.selected ? '#00b894' : '#495057'};
+  }
+`;
+
+const FormContainer = styled.div`
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+  animation: ${fadeIn} 0.4s ease-out;
+`;
+
+const FloatingLabel = styled.div`
+  position: relative;
+  margin: 2rem 0;
+
+  textarea {
+    width: 100%;
+    padding: 1.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 1rem;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    min-height: 150px;
+
+    &:focus {
+      border-color: #00b894;
+      outline: none;
+    }
+  }
+
+  label {
+    position: absolute;
+    top: -0.8rem;
+    left: 1rem;
+    background: white;
+    padding: 0 0.5rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+  }
+`;
+
+const MapContainer = styled.div`
+  height: 400px;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  background: linear-gradient(145deg, #00b894 0%, #007bff 100%);
+  position: relative;
+  margin: 2rem 0;
+
+  &::after {
+    content: 'Map Integration';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 1.5rem;
+    opacity: 0.8;
+  }
+`;
+
+const NumberInput = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+
+  button {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #00b894;
+    background: white;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    color: #00b894;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: #00b894;
+      color: white;
+    }
+  }
+
+  span {
+    font-size: 1.5rem;
+    min-width: 50px;
+    text-align: center;
+    font-weight: 600;
+    color: #212529;
+  }
+`;
+
+const NavigationFooter = styled.footer`
+  position: sticky;
+  bottom: 0;
+  background: white;
+  border-top: 2px solid #e9ecef;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+`;
+
+const PrimaryButton = styled.button`
+  background: #00b894;
+  color: white;
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: 2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &:hover {
+    background: #00997a;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,184,148,0.3);
+  }
+`;
 
 const adventures = [
   'Trekking', 'Hiking', 'Camping', 'Rafting', 'Bungee Jumping',
   'Paragliding', 'Rock Climbing', 'Scuba Diving', 'Surfing', 'Kayaking',
   'Skydiving', 'Mountain Biking', 'Zip Lining', 'Caving', 'Horse Riding',
-  'Snowboarding', 'Skiing', 'Safari', 'Hot Air Balloon', 'Fishing',
-  'Sailing', 'Snorkeling', 'ATV Riding', 'Sandboarding', 'Wildlife Watching'
-  // ...add more if needed
+  'Snowboarding', 'Skiing', 'Safari', 'Hot Air Balloon', 'Fishing'
 ];
 
 function Step2() {
   const [selected, setSelected] = useState([]);
   const [step, setStep] = useState(1);
   const [businessAnswer, setBusinessAnswer] = useState('');
-  const [location, setLocation] = useState({ lat: '', lng: '' });
   const [locationInput, setLocationInput] = useState('');
   const [type, setType] = useState('');
   const [staff, setStaff] = useState(1);
@@ -31,230 +229,142 @@ function Step2() {
   };
 
   const handleNext = () => {
-    if (step === 1) {
-      setStep(2);
-    } else if (step === 2) {
-      setStep(3);
-    } else if (step === 3) {
-      setStep(4);
-    } else if (step === 4) {
-      // Save logic here if needed
-      navigate('/step-3');
-    }
+    if (step < 4) setStep(step + 1);
+    else navigate('/step-3');
   };
 
-  // For demonstration, the map is a placeholder div.
-  // Replace with your preferred map integration.
-  const handleLocationConfirm = (e) => {
-    e.preventDefault();
-    // Simulate extracting lat/lng from input
-    const [lat, lng] = locationInput.split(',').map(s => s.trim());
-    setLocation({ lat, lng });
-    handleNext();
+  const getProgress = () => {
+    return (step / 4) * 100;
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Bar */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '16px', borderBottom: '1px solid #eee'
-      }}>
-        <div>
-          <img src="/logo.png" alt="Logo" style={{ height: 40 }} />
+    <Container>
+      <Header>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M16 2L30 26H2L16 2Z" fill="#00b894"/>
+          </svg>
+          <span style={{ fontWeight: 600, fontSize: '1.2rem' }}>Adventure Setup</span>
         </div>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button>Question</button>
-          <button>Save</button>
-          <button onClick={handleNext}>Next</button>
-        </div>
-      </div>
+        <ProgressBar progress={getProgress()}/>
+      </Header>
 
-      {/* Step 1: Adventure Selection */}
       {step === 1 && (
-        <div style={{ flex: 1, padding: '32px 16px' }}>
-          <h2>Which of these adventures describe your service?</h2>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-            gap: 16,
-            marginTop: 24
-          }}>
+        <FormContainer>
+          <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Select Your Adventure Types</h2>
+          <p style={{ color: '#6c757d', marginBottom: '2rem' }}>
+            Choose all that apply to your location
+          </p>
+          <AdventureGrid>
             {adventures.map(adventure => (
-              <button
+              <AdventureCard
                 key={adventure}
                 onClick={() => handleSelect(adventure)}
-                style={{
-                  padding: '16px',
-                  borderRadius: 8,
-                  border: selected.includes(adventure) ? '2px solid #007bff' : '1px solid #ccc',
-                  background: selected.includes(adventure) ? '#e6f0ff' : '#fff',
-                  cursor: 'pointer',
-                  fontWeight: selected.includes(adventure) ? 'bold' : 'normal'
-                }}
+                selected={selected.includes(adventure)}
               >
-                {adventure}
-              </button>
+                <span>{adventure}</span>
+              </AdventureCard>
             ))}
-          </div>
-        </div>
+          </AdventureGrid>
+        </FormContainer>
       )}
 
-      {/* Step 2: Adventure Business Question */}
       {step === 2 && (
-        <div style={{ flex: 1, padding: '32px 16px' }}>
-          <h2>Q2: Tell us about your Adventure Business</h2>
-          <textarea
-            value={businessAnswer}
-            onChange={e => setBusinessAnswer(e.target.value)}
-            placeholder="Describe your adventure business..."
-            style={{ width: '100%', minHeight: 120, marginTop: 24, padding: 12, borderRadius: 8, border: '1px solid #ccc' }}
-          />
-          <div style={{ marginTop: 24 }}>
-            <button onClick={handleNext} style={{
-              padding: '12px 32px',
-              borderRadius: 24,
-              background: '#007bff',
-              color: '#fff',
-              border: 'none',
-              fontSize: 16,
-              fontWeight: 'bold',
-              cursor: 'pointer'
-            }}>Next</button>
-          </div>
-        </div>
+        <FormContainer>
+          <h2 style={{ fontSize: '2rem', marginBottom: '2rem' }}>Describe Your Adventure Business</h2>
+          <FloatingLabel>
+            <label>Business Description</label>
+            <textarea
+              value={businessAnswer}
+              onChange={e => setBusinessAnswer(e.target.value)}
+              placeholder="Tell us about your unique adventure offerings..."
+            />
+          </FloatingLabel>
+        </FormContainer>
       )}
 
-      {/* Step 3: Location with Map and Confirm Form */}
       {step === 3 && (
-        <div style={{ flex: 1, padding: '32px 16px' }}>
-          <h2>Q3: Where is your adventure located?</h2>
-          <div style={{ height: 300, marginBottom: 24, borderRadius: 8, background: '#e6e6e6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {/* Replace this with your map integration */}
-            <span style={{ color: '#888' }}>Map Placeholder</span>
-          </div>
-          <form onSubmit={handleLocationConfirm}>
-            <label>
-              Confirm Location (lat, lng):
-              <input
-                type="text"
-                value={locationInput}
-                onChange={e => setLocationInput(e.target.value)}
-                placeholder="e.g. 28.7041, 77.1025"
-                style={{ marginLeft: 8, padding: 8, borderRadius: 6, border: '1px solid #ccc', width: 200 }}
-              />
-            </label>
-            <button type="submit" style={{
-              marginLeft: 16,
-              padding: '8px 24px',
-              borderRadius: 20,
-              background: '#007bff',
-              color: '#fff',
-              border: 'none',
-              fontWeight: 'bold',
-              cursor: 'pointer'
-            }}>Confirm & Next</button>
-          </form>
-        </div>
-      )}
-
-      {/* Step 4: Basic Info with + / - Controls */}
-      {step === 4 && (
-        <div style={{ flex: 1, padding: '32px 16px' }}>
-          <h2>Q4: Basic Info about your Adventure</h2>
-          <div style={{ marginBottom: 24 }}>
-            <label>
-              Type of Adventure:
-              <input
-                value={type}
-                onChange={e => setType(e.target.value)}
-                placeholder="e.g. Trekking"
-                style={{ marginLeft: 8, padding: 8, borderRadius: 6, border: '1px solid #ccc', width: 200 }}
-              />
-            </label>
-          </div>
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ marginRight: 16 }}>Number of Staff:</label>
-            <button
-              onClick={() => setStaff(Math.max(1, staff - 1))}
-              style={{
-                width: 36, height: 36, borderRadius: '50%', border: '1px solid #ccc', background: '#fff', fontSize: 20, marginRight: 8
-              }}>-</button>
-            <span style={{ fontSize: 20, minWidth: 24, display: 'inline-block', textAlign: 'center' }}>{staff}</span>
-            <button
-              onClick={() => setStaff(staff + 1)}
-              style={{
-                width: 36, height: 36, borderRadius: '50%', border: '1px solid #ccc', background: '#fff', fontSize: 20, marginLeft: 8
-              }}>+</button>
-          </div>
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ marginRight: 16 }}>Number of Security:</label>
-            <button
-              onClick={() => setSecurity(Math.max(1, security - 1))}
-              style={{
-                width: 36, height: 36, borderRadius: '50%', border: '1px solid #ccc', background: '#fff', fontSize: 20, marginRight: 8
-              }}>-</button>
-            <span style={{ fontSize: 20, minWidth: 24, display: 'inline-block', textAlign: 'center' }}>{security}</span>
-            <button
-              onClick={() => setSecurity(security + 1)}
-              style={{
-                width: 36, height: 36, borderRadius: '50%', border: '1px solid #ccc', background: '#fff', fontSize: 20, marginLeft: 8
-              }}>+</button>
-          </div>
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ marginRight: 16 }}>Limit:</label>
-            <button
-              onClick={() => setLimit(Math.max(1, limit - 1))}
-              style={{
-                width: 36, height: 36, borderRadius: '50%', border: '1px solid #ccc', background: '#fff', fontSize: 20, marginRight: 8
-              }}>-</button>
-            <span style={{ fontSize: 20, minWidth: 24, display: 'inline-block', textAlign: 'center' }}>{limit}</span>
-            <button
-              onClick={() => setLimit(limit + 1)}
-              style={{
-                width: 36, height: 36, borderRadius: '50%', border: '1px solid #ccc', background: '#fff', fontSize: 20, marginLeft: 8
-              }}>+</button>
-          </div>
-          <button onClick={handleNext} style={{
-            padding: '12px 32px',
-            borderRadius: 24,
-            background: '#007bff',
-            color: '#fff',
-            border: 'none',
-            fontSize: 16,
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}>Next</button>
-        </div>
-      )}
-
-      {/* Bottom Right Next Button */}
-      {step === 1 && (
-        <div style={{
-          position: 'fixed',
-          bottom: 24,
-          right: 24,
-          zIndex: 100
-        }}>
-          <button
-            onClick={handleNext}
+        <FormContainer>
+          <h2 style={{ fontSize: '2rem', marginBottom: '2rem' }}>Location Details</h2>
+          <MapContainer />
+          <input
+            type="text"
+            value={locationInput}
+            onChange={e => setLocationInput(e.target.value)}
+            placeholder="Enter coordinates (lat, lng)..."
             style={{
-              padding: '12px 32px',
-              borderRadius: 24,
-              background: '#007bff',
-              color: '#fff',
-              border: 'none',
-              fontSize: 16,
-              fontWeight: 'bold',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              cursor: 'pointer'
+              width: '100%',
+              padding: '1rem',
+              border: '2px solid #e9ecef',
+              borderRadius: '1rem',
+              marginBottom: '2rem'
             }}
-          >
-            Next
-          </button>
-        </div>
+          />
+        </FormContainer>
       )}
-    </div>
+
+      {step === 4 && (
+        <FormContainer>
+          <h2 style={{ fontSize: '2rem', marginBottom: '2rem' }}>Final Details</h2>
+          <div style={{ marginBottom: '2rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem' }}>Adventure Type</label>
+            <input
+              value={type}
+              onChange={e => setType(e.target.value)}
+              placeholder="e.g. Extreme Sports"
+              style={{
+                width: '100%',
+                padding: '1rem',
+                border: '2px solid #e9ecef',
+                borderRadius: '1rem'
+              }}
+            />
+          </div>
+
+          <NumberInput>
+            <span>Staff Members:</span>
+            <button onClick={() => setStaff(Math.max(1, staff - 1))}>-</button>
+            <span>{staff}</span>
+            <button onClick={() => setStaff(staff + 1)}>+</button>
+          </NumberInput>
+
+          <NumberInput>
+            <span>Security Personnel:</span>
+            <button onClick={() => setSecurity(Math.max(1, security - 1))}>-</button>
+            <span>{security}</span>
+            <button onClick={() => setSecurity(security + 1)}>+</button>
+          </NumberInput>
+
+          <NumberInput>
+            <span>Daily Limit:</span>
+            <button onClick={() => setLimit(Math.max(1, limit - 1))}>-</button>
+            <span>{limit}</span>
+            <button onClick={() => setLimit(limit + 1)}>+</button>
+          </NumberInput>
+        </FormContainer>
+      )}
+
+      <NavigationFooter>
+        <button
+          onClick={() => step > 1 ? setStep(step - 1) : null}
+          style={{
+            padding: '1rem 2rem',
+            border: 'none',
+            background: 'none',
+            color: step > 1 ? '#00b894' : '#ccc',
+            cursor: step > 1 ? 'pointer' : 'default'
+          }}
+        >
+          ← Previous
+        </button>
+        <PrimaryButton onClick={handleNext}>
+          {step === 4 ? 'Complete Setup' : 'Next Step'}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </PrimaryButton>
+      </NavigationFooter>
+    </Container>
   );
 }
 

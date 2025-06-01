@@ -1,10 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AutoHoverTriangle = () => {
   const [hoveredZone, setHoveredZone] = useState(null);
   const [autoHoverActive, setAutoHoverActive] = useState(true);
   const [rotationAngle, setRotationAngle] = useState(0);
+  const [isManualHover, setIsManualHover] = useState(false);
+  const [hoverDelay, setHoverDelay] = useState(3000); // 3 seconds delay
+  const [particleEffect, setParticleEffect] = useState(false);
   const animationRef = useRef();
+  const navigate = useNavigate();
 
   // Sample images for each zone (replace with your actual image URLs)
   const zoneImages = {
@@ -28,14 +33,14 @@ const AutoHoverTriangle = () => {
   // Increased triangle size
   const points = {
     A: { x: 300, y: 80, name: "Air Adventure", color: "bg-blue-500" },
-    B: { x: 80, y: 360, name: "Water Adventure", color: "bg-teal-500" },
-    C: { x: 520, y: 360, name: "Land Adventure", color: "bg-green-500" },
-    G: { x: 300, y: 260, name: "Central Hub", color: "bg-purple-600" }
+    B: { x: 80, y: 360, name: "Water Adventure", color: "bg-purple-500" },
+    C: { x: 520, y: 360, name: "Land Adventure", color: "bg-orange-500" },
+    G: { x: 300, y: 260, name: "Central Hub", color: "bg-green-700" }
   };
 
   const zoneNames = {
     AGB: "Air ",
-    AGC: "Water ", 
+    AGC: "Water ",
     BGC: "Land "
   };
 
@@ -61,28 +66,42 @@ const AutoHoverTriangle = () => {
     },
   };
 
-  // Auto-hover effect
+  // Enhanced auto-hover effect with variable timing
   useEffect(() => {
-    if (!autoHoverActive) return;
+    if (!autoHoverActive || isManualHover) return;
 
     const zones = ['AGB', 'AGC', 'BGC'];
     let currentIndex = 0;
+    let timeoutId;
 
-    const interval = setInterval(() => {
+    const startHoverSequence = () => {
       setHoveredZone(zones[currentIndex]);
       currentIndex = (currentIndex + 1) % zones.length;
-      
+
+      // Add particle effect when zone changes
+      setParticleEffect(true);
+      setTimeout(() => setParticleEffect(false), 1000);
+
       if (currentIndex === 0) {
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
           setAutoHoverActive(false);
           setHoveredZone(null);
-        }, 5000);
-        clearInterval(interval);
+          // Restart after a longer pause
+          setTimeout(() => {
+            setAutoHoverActive(true);
+          }, 5000);
+        }, hoverDelay);
+      } else {
+        timeoutId = setTimeout(startHoverSequence, hoverDelay);
       }
-    }, 2000);
+    };
 
-    return () => clearInterval(interval);
-  }, [autoHoverActive]);
+    startHoverSequence();
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [autoHoverActive, isManualHover, hoverDelay]);
 
   // Animation for rotating circular text
   useEffect(() => {
@@ -91,7 +110,7 @@ const AutoHoverTriangle = () => {
       animationRef.current = requestAnimationFrame(animate);
     };
     animationRef.current = requestAnimationFrame(animate);
-    
+
     return () => cancelAnimationFrame(animationRef.current);
   }, []);
 
@@ -103,21 +122,75 @@ const AutoHoverTriangle = () => {
 
   // Handle book now click
   const handleBookNow = (activity) => {
-    alert(`Booking ${activity} now!`);
-    // In a real app, you would redirect to booking page or open a modal
+    navigate('/booking', { state: { activity } });
   };
+
+  // Particle effect component
+  const ParticleEffect = ({ x, y, color }) => {
+    const particles = Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      angle: (i * 360) / 20,
+      distance: Math.random() * 30 + 20,
+    }));
+
+    return (
+      <g transform={`translate(${x},${y})`}>
+        {particles.map((particle) => {
+          const radian = (particle.angle * Math.PI) / 180;
+          const px = Math.cos(radian) * particle.distance;
+          const py = Math.sin(radian) * particle.distance;
+          return (
+            <circle
+              key={particle.id}
+              cx={px}
+              cy={py}
+              r="2"
+              fill={color}
+              opacity="0.6"
+              className="animate-ping"
+              style={{
+                animationDuration: `${Math.random() * 1 + 0.5}s`,
+                animationDelay: `${Math.random() * 0.5}s`,
+              }}
+            />
+          );
+        })}
+      </g>
+    );
+  };
+
+  // Handle zone hover with enhanced effects
+  const handleZoneHover = (zone) => {
+    setIsManualHover(true);
+    setHoveredZone(zone);
+    setAutoHoverActive(false);
+    setParticleEffect(true);
+    setTimeout(() => setParticleEffect(false), 1000);
+  };
+
+  // Handle zone leave with smooth transition
+  const handleZoneLeave = () => {
+    setIsManualHover(false);
+    setHoveredZone(null);
+    setTimeout(() => {
+      if (!isManualHover) {
+        setAutoHoverActive(true);
+      }
+    }, 2000);
+  };
+
   // Array of background images to cycle through
   const backgroundImages = [
-    "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80", // Mountain lake
-    "https://images.unsplash.com/photo-1506929562872-bb421503ef21?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80", // Desert canyon
-    "https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80", // Forest waterfall
-    "https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80", // Mountain hiking
-    "https://images.unsplash.com/photo-1518632618335-df838848f9f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80", // Tropical beach
-    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80", // Snowy mountains
-    "https://images.unsplash.com/photo-1509316785289-025f5b846b35?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80", // Desert dunes
-    "https://images.unsplash.com/photo-1513415277900-a62401e19be4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80", // Underwater coral
-    "https://images.unsplash.com/photo-1504470695779-75300268aa0e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80", // Jungle river
-    "https://images.unsplash.com/photo-1501554728187-ce583db33af7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80"  // Cliff diving
+    "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
+    "https://images.unsplash.com/photo-1506929562872-bb421503ef21?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
+    "https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
+    "https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
+    "https://images.unsplash.com/photo-1518632618335-df838848f9f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
+    "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
+    "https://images.unsplash.com/photo-1509316785289-025f5b846b35?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
+    "https://images.unsplash.com/photo-1513415277900-a62401e19be4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
+    "https://images.unsplash.com/photo-1504470695779-75300268aa0e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
+    "https://images.unsplash.com/photo-1501554728187-ce583db33af7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80"
   ];
 
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
@@ -126,15 +199,27 @@ const AutoHoverTriangle = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentBgIndex((prev) => (prev + 1) % backgroundImages.length);
-    }, 5000); // Change every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  // Add globe rotation state
+  const [globeRotation, setGlobeRotation] = useState(0);
+
+  // Add globe rotation effect
+  useEffect(() => {
+    const animateGlobe = () => {
+      setGlobeRotation(prev => (prev + 1) % 360);
+      requestAnimationFrame(animateGlobe);
+    };
+    requestAnimationFrame(animateGlobe);
   }, []);
 
   return (
     <div className="relative">
       {/* Fixed Background with changing images */}
-      <div 
+      <div
         className="fixed inset-0 z-0 h-screen transition-opacity duration-1000"
         style={{
           backgroundImage: `url(${backgroundImages[currentBgIndex]})`,
@@ -147,50 +232,115 @@ const AutoHoverTriangle = () => {
         {/* Semi-transparent overlay */}
         <div className="absolute inset-0 bg-black/30"></div>
       </div>
-      
+
       {/* Scrollable Content */}
       <div className="relative z-10">
         {/* Hero Section */}
         <div className="min-h-screen flex flex-col justify-center">
           <div className="container mx-auto px-4 py-12">
             <h1 className="text-5xl font-bold text-center mb-12 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent pt-12">
-              Adventure Triangle Park
+              Adventure Triangle
             </h1>
 
             <div className="relative h-[600px] w-full max-w-4xl mx-auto mb-12">
-              <svg 
+              <svg
                 className="w-full h-full"
                 viewBox="0 0 600 400"
                 preserveAspectRatio="xMidYMid meet"
               >
                 {/* Gradient Definitions */}
                 <defs>
-                  <linearGradient id="AGBGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="rgba(59, 130, 246, 0.7)" />
-                    <stop offset="100%" stopColor="rgba(16, 185, 129, 0.7)" />
+                  {/* Define a green fill for the recycling arrows */}
+                  <linearGradient id="arrowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="rgba(34, 197, 94, 0.9)" />
+                    <stop offset="100%" stopColor="rgba(21, 128, 61, 0.7)" />
                   </linearGradient>
-                  <linearGradient id="AGCGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="rgba(59, 130, 246, 0.7)" />
-                    <stop offset="100%" stopColor="rgba(5, 150, 105, 0.7)" />
+                  {/* Update gradients for realistic Earth colors */}
+                  <radialGradient id="oceanGradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                    <stop offset="0%" stopColor="rgba(30, 144, 255, 0.9)" />
+                    <stop offset="50%" stopColor="rgba(0, 119, 182, 0.8)" />
+                    <stop offset="100%" stopColor="rgba(0, 105, 148, 0.7)" />
+                  </radialGradient>
+
+                  <linearGradient id="landGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="rgba(34, 197, 94, 0.9)" />
+                    <stop offset="50%" stopColor="rgba(22, 163, 74, 0.8)" />
+                    <stop offset="100%" stopColor="rgba(21, 128, 61, 0.7)" />
                   </linearGradient>
-                  <linearGradient id="BGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="rgba(16, 185, 129, 0.7)" />
-                    <stop offset="100%" stopColor="rgba(5, 150, 105, 0.7)" />
+
+                  <linearGradient id="globeHighlight" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="rgba(255, 255, 255, 0.4)" />
+                    <stop offset="100%" stopColor="rgba(255, 255, 255, 0)" />
                   </linearGradient>
-                  <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-                    <feGaussianBlur stdDeviation="5" result="blur" />
-                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+
+                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+                    <feOffset dx="0" dy="2" result="offsetblur" />
+                    <feComponentTransfer>
+                      <feFuncA type="linear" slope="0.3" />
+                    </feComponentTransfer>
+                    <feMerge>
+                      <feMergeNode />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
                   </filter>
                 </defs>
 
+                {/* Revolving Globe in Center */}
+                <g transform="translate(300, 200)">
+                  {/* Globe Container */}
+                  <g transform={`rotate(${globeRotation})`}>
+                    {/* Base Earth Circle with ocean color */}
+                    <circle
+                      r="70"
+                      fill="url(#oceanGradient)"
+                      stroke="rgba(255, 255, 255, 0.3)"
+                      strokeWidth="2"
+                    />
+
+                    {/* Continents with realistic colors */}
+                    <g transform="scale(1.7)" fill="url(#landGradient)" stroke="rgba(255, 255, 255, 0.1)" strokeWidth="0.5">
+                      {/* North America */}
+                      <path d="M-15,-20 Q-10,-25 0,-25 T15,-20 T10,-10 T-10,-10 T-15,-20" />
+                      {/* South America */}
+                      <path d="M-10,10 Q-5,5 0,5 T10,10 T5,25 T-5,25 T-10,10" />
+                      {/* Europe */}
+                      <path d="M-5,-15 Q0,-20 5,-15 T10,-5 T5,0 T-5,0 T-10,-5 T-5,-15" />
+                      {/* Africa */}
+                      <path d="M-10,-5 Q-5,-10 0,-10 T10,-5 T5,15 T-5,15 T-10,-5" />
+                      {/* Asia */}
+                      <path d="M5,-15 Q15,-20 25,-15 T30,-5 T25,5 T15,5 T5,-5 T5,-15" />
+                      {/* Australia */}
+                      <path d="M20,15 Q25,10 30,15 T35,25 T25,25 T20,15" />
+                    </g>
+
+                    {/* Atmosphere Glow */}
+                    <circle
+                      r="72"
+                      fill="none"
+                      stroke="rgba(255, 255, 255, 0.1)"
+                      strokeWidth="2"
+                      className="animate-pulse"
+                    />
+
+                    {/* Highlight Effect */}
+                    <circle
+                      r="68"
+                      fill="url(#globeHighlight)"
+                      opacity="0.2"
+                    />
+                  </g>
+                </g>
+
                 {/* Rotating circular text */}
-                <g transform={`rotate(${rotationAngle}, ${centerX}, ${centerY})`}>
+                <g transform={`rotate(${rotationAngle}, 300, 200)`}>
                   {Array.from(circularText.repeat(5)).map((char, index) => {
                     const angle = (index * 360 / circularText.length) - 90;
                     const radian = angle * (Math.PI / 180);
-                    const x = centerX + radius * Math.cos(radian);
-                    const y = centerY + radius * Math.sin(radian);
-                    
+                    const radius = 150;
+                    const x = 300 + radius * Math.cos(radian);
+                    const y = 200 + radius * Math.sin(radian);
+
                     return (
                       <text
                         key={index}
@@ -210,96 +360,118 @@ const AutoHoverTriangle = () => {
                   })}
                 </g>
 
-                {/* Solid Triangle Base */}
-                <polygon
-                  points={`${points.A.x},${points.A.y} ${points.B.x},${points.B.y} ${points.C.x},${points.C.y}`}
-                  fill="rgba(255, 255, 255, 0.1)"
-                  stroke="rgba(255, 255, 255, 0.3)"
-                  strokeWidth="2"
+                {/* Add Recycling Arrow Paths */}
+                {/* Arrow 1 (Top) - Map to AGB (Air) */}
+                <path
+                  d="M300,80
+                       L250,180 Q260,190 270,185 L280,170 Q290,165 300,170
+                       Q310,165 320,170 L330,185 Q340,190 350,180 Z"
+                  fill="url(#arrowGradient)"
+                  stroke={hoveredZone === 'AGB' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.3)'}
+                  strokeWidth={hoveredZone === 'AGB' ? '3' : '1.5'}
+                  onMouseEnter={() => handleZoneHover('AGB')}
+                  onMouseLeave={handleZoneLeave}
+                  className="cursor-pointer transition-all duration-500"
+                  style={{
+                    pointerEvents: 'fill',
+                    filter: hoveredZone === 'AGB' ? 'drop-shadow(0 0 20px rgba(34, 197, 94, 0.7))' : 'none',
+                    opacity: hoveredZone && hoveredZone !== 'AGB' ? 0.7 : 1,
+                    transform: hoveredZone === 'AGB' ? 'scale(1.02)' : 'scale(1)',
+                    transformOrigin: 'center',
+                  }}
+                />
+                {/* Arrow 2 (Left) - Map to BGC (Land) */}
+                <path
+                  d="M80,360
+                       L180,310 Q190,300 185,290 L170,280 Q165,270 170,260
+                       Q165,250 170,240 L185,230 Q190,220 180,210 Z"
+                  fill="url(#arrowGradient)"
+                  stroke={hoveredZone === 'BGC' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.3)'}
+                  strokeWidth={hoveredZone === 'BGC' ? '3' : '1.5'}
+                  onMouseEnter={() => handleZoneHover('BGC')}
+                  onMouseLeave={handleZoneLeave}
+                  className="cursor-pointer transition-all duration-500"
+                  style={{
+                    pointerEvents: 'fill',
+                    filter: hoveredZone === 'BGC' ? 'drop-shadow(0 0 20px rgba(34, 197, 94, 0.7))' : 'none',
+                    opacity: hoveredZone && hoveredZone !== 'BGC' ? 0.7 : 1,
+                    transform: hoveredZone === 'BGC' ? 'scale(1.02)' : 'scale(1)',
+                    transformOrigin: 'center',
+                  }}
+                  transform="rotate(120, 300, 200)"
+                />
+                {/* Arrow 3 (Right) - Map to AGC (Water) */}
+                <path
+                  d="M520,360
+                       L420,310 Q410,300 415,290 L430,280 Q435,270 430,260
+                       Q435,250 430,240 L415,230 Q410,220 420,210 Z"
+                  fill="url(#arrowGradient)"
+                  stroke={hoveredZone === 'AGC' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.3)'}
+                  strokeWidth={hoveredZone === 'AGC' ? '3' : '1.5'}
+                  onMouseEnter={() => handleZoneHover('AGC')}
+                  onMouseLeave={handleZoneLeave}
+                  className="cursor-pointer transition-all duration-500"
+                  style={{
+                    pointerEvents: 'fill',
+                    filter: hoveredZone === 'AGC' ? 'drop-shadow(0 0 20px rgba(34, 197, 94, 0.7))' : 'none',
+                    opacity: hoveredZone && hoveredZone !== 'AGC' ? 0.7 : 1,
+                    transform: hoveredZone === 'AGC' ? 'scale(1.02)' : 'scale(1)',
+                    transformOrigin: 'center',
+                  }}
+                  transform="rotate(240, 300, 200)"
                 />
 
-                {/* Zone Polygons with solid colors */}
-                {['AGB', 'AGC', 'BGC'].map((key) => (
-                  <polygon
-                    key={key}
-                    points={
-                      key === 'AGB'
-                        ? `${points.A.x},${points.A.y} ${points.G.x},${points.G.y} ${points.B.x},${points.B.y}`
-                        : key === 'AGC'
-                          ? `${points.A.x},${points.A.y} ${points.G.x},${points.G.y} ${points.C.x},${points.C.y}`
-                          : `${points.B.x},${points.B.y} ${points.G.x},${points.G.y} ${points.C.x},${points.C.y}`
-                    }
-                    fill={
-                      key === 'AGB' ? 'url(#AGBGradient)' :
-                      key === 'AGC' ? 'url(#AGCGradient)' : 'url(#BGradient)'
-                    }
-                    stroke={hoveredZone === key ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.3)'}
-                    strokeWidth={hoveredZone === key ? '3' : '1.5'}
-                    onMouseEnter={() => {
-                      setHoveredZone(key);
-                      setAutoHoverActive(false);
-                    }}
-                    onMouseLeave={() => setHoveredZone(null)}
-                    className="cursor-pointer transition-all duration-300"
-                    style={{ 
-                      pointerEvents: 'fill',
-                      filter: hoveredZone === key ? 'drop-shadow(0 0 12px rgba(99, 102, 241, 0.5))' : 'none',
-                      opacity: hoveredZone && hoveredZone !== key ? 0.7 : 1
-                    }}
+                {/* Update Particle effect positioning */}
+                {particleEffect && hoveredZone === 'AGB' && (
+                  <ParticleEffect
+                    x={300}
+                    y={140}
+                    color={'#22C55E'}
                   />
-                ))}
+                )}
+                {particleEffect && hoveredZone === 'BGC' && (
+                  <ParticleEffect
+                    x={180}
+                    y={280}
+                    color={'#22C55E'}
+                  />
+                )}
+                {particleEffect && hoveredZone === 'AGC' && (
+                  <ParticleEffect
+                    x={420}
+                    y={280}
+                    color={'#22C55E'}
+                  />
+                )}
 
-                {/* Zone Names */}
+                {/* Update Enhanced Zone Names with animations */}
                 {['AGB', 'AGC', 'BGC'].map((key) => (
                   <text
                     key={key}
-                    x={zoneCenters[key].x}
-                    y={zoneCenters[key].y + 4}
+                    x={key === 'AGB' ? 300 : key === 'BGC' ? 180 : 420}
+                    y={key === 'AGB' ? 145 : 285}
                     textAnchor="middle"
-                    className={`font-bold text-xl ${
-                      key === 'AGB' ? 'fill-blue-100' : 
-                      key === 'AGC' ? 'fill-teal-100' : 'fill-green-100'
-                    }`}
-                    style={{ 
+                    className={`font-bold text-xl transition-all duration-500 fill-white`}
+                    style={{
                       textShadow: '0 2px 4px rgba(0,0,0,0.5)',
-                      opacity: hoveredZone === key ? 1 : 0.8
+                      opacity: hoveredZone === key ? 1 : 0.8,
+                      transform: hoveredZone === key ? 'scale(1.1)' : 'scale(1)',
+                      transformOrigin: 'center',
                     }}
                   >
                     {zoneNames[key]}
                   </text>
                 ))}
-
-                {/* Vertex Points with animation */}
-                {['A', 'B', 'C', 'G'].map((key) => (
-                  <g key={key} transform={`translate(${points[key].x},${points[key].y})`}>
-                    <circle
-                      r="2"
-                      fill={key === 'G' ? "#8B5CF6" : 
-                            key === 'A' ? "#3B82F6" : 
-                            key === 'B' ? "#10B981" : "#059669"}
-                      stroke="white"
-                      strokeWidth="1"
-                      className="animate-pulse"
-                      style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.5))' }}
-                    />
-                   
-                  </g>
-                ))}
-
-                {/* Central Hub Label */}
-               
               </svg>
 
               {/* Enhanced Activity Display with Images and Book Now Button */}
               {hoveredZone && (
-                <div 
-                  className={`absolute p-6 rounded-2xl backdrop-blur-lg border border-white/20 shadow-2xl ${
-                    hoveredZone === 'AGB' ? 'bg-blue-600/30' :
-                    hoveredZone === 'AGC' ? 'bg-teal-600/30' : 'bg-green-600/30'
-                  } text-white`}
+                <div
+                  className={`absolute p-6 rounded-2xl backdrop-blur-lg border border-white/20 shadow-2xl bg-green-600/30 text-white`}
                   style={{
-                    left: `${points.G.x - 150}px`,
-                    top: `${points.G.y + 20}px`,
+                    left: `50%`,
+                    top: `50%`,
+                    transform: `translate(-50%, -50%)`,
                     width: '320px',
                     zIndex: 10,
                     animation: 'slideIn 0.3s ease-out'
@@ -308,56 +480,42 @@ const AutoHoverTriangle = () => {
                   <h3 className="font-bold text-2xl mb-4 flex items-center gap-2">
                     <span className="p-3 bg-white/10 rounded-lg">{zoneNames[hoveredZone]}</span>
                   </h3>
-                  
-                  {/* Activity Images Carousel */}
+
                   <div className="mb-4 relative h-40 rounded-lg overflow-hidden">
                     {zoneImages[hoveredZone].map((img, index) => (
                       <img
                         key={index}
                         src={img}
                         alt={zoneActivities[hoveredZone][index]}
-                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
-                          index === 0 ? 'opacity-100' : 'opacity-0'
-                        }`}
+                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${index === 0 ? 'opacity-100' : 'opacity-0'
+                          }`}
                       />
                     ))}
                   </div>
-                  
+
                   <ul className="space-y-3 mb-4">
                     {zoneActivities[hoveredZone].map((activity, index) => (
-                      <li 
+                      <li
                         key={index}
                         className="flex items-center justify-between gap-3 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
                       >
                         <div className="flex items-center gap-3">
-                          <span className={`text-xl ${
-                            hoveredZone === 'AGB' ? 'text-blue-300' :
-                            hoveredZone === 'AGC' ? 'text-teal-300' : 'text-green-300'
-                          }`}>▹</span>
+                          <span className={`text-xl text-green-300`}>▹</span>
                           <span>{activity}</span>
                         </div>
                         <button
                           onClick={() => handleBookNow(activity)}
-                          className={`px-3 py-1 text-sm rounded-md ${
-                            hoveredZone === 'AGB' ? 'bg-blue-500 hover:bg-blue-600' :
-                            hoveredZone === 'AGC' ? 'bg-teal-500 hover:bg-teal-600' : 
-                            'bg-green-500 hover:bg-green-600'
-                          } transition-colors`}
+                          className={`px-3 py-1 text-sm rounded-md bg-green-500 hover:bg-green-600 transition-colors`}
                         >
                           Book
                         </button>
                       </li>
                     ))}
                   </ul>
-                  
-                  {/* Book All Button */}
+
                   <button
                     onClick={() => handleBookNow(zoneNames[hoveredZone] + "Package")}
-                    className={`w-full py-2 px-4 rounded-lg font-bold ${
-                      hoveredZone === 'AGB' ? 'bg-blue-600 hover:bg-blue-700' :
-                      hoveredZone === 'AGC' ? 'bg-teal-600 hover:bg-teal-700' : 
-                      'bg-green-600 hover:bg-green-700'
-                    } transition-colors`}
+                    className={`w-full py-2 px-4 rounded-lg font-bold bg-green-600 hover:bg-green-700 transition-colors`}
                   >
                     See All Activities
                   </button>
@@ -374,18 +532,18 @@ const AutoHoverTriangle = () => {
               <h2 className="text-4xl font-bold mb-8">About Adventure Triangle</h2>
               <div className="space-y-6 text-lg">
                 <p>
-                  The Adventure Triangle Park is a premier destination for thrill-seekers and nature enthusiasts alike. 
-                  Nestled in the heart of breathtaking landscapes, our park offers three distinct zones of exhilarating 
+                  The Adventure Triangle Park is a premier destination for thrill-seekers and nature enthusiasts alike.
+                  Nestled in the heart of breathtaking landscapes, our park offers three distinct zones of exhilarating
                   activities designed to push your limits while ensuring maximum safety.
                 </p>
                 <p>
-                  Our certified guides have years of experience in their respective adventure fields, providing 
-                  not just safety supervision but also expert tips to enhance your experience. Whether you're 
+                  Our certified guides have years of experience in their respective adventure fields, providing
+                  not just safety supervision but also expert tips to enhance your experience. Whether you're
                   a first-timer or an experienced adventurer, we have something to challenge and excite you.
                 </p>
                 <p>
-                  The park was founded in 2010 with a mission to make adventure sports more accessible while 
-                  maintaining the highest safety standards. Since then, we've hosted over 50,000 adventurers 
+                  The park was founded in 2010 with a mission to make adventure sports more accessible while
+                  maintaining the highest safety standards. Since then, we've hosted over 50,000 adventurers
                   from around the world.
                 </p>
               </div>
@@ -428,7 +586,10 @@ const AutoHoverTriangle = () => {
                         </li>
                       ))}
                     </ul>
-                    <button className={`w-full py-3 px-6 rounded-lg font-bold bg-gradient-to-r ${zone.color} hover:opacity-90 transition-opacity`}>
+                    <button
+                      className={`w-full py-3 px-6 rounded-lg font-bold bg-gradient-to-r ${zone.color} hover:opacity-90 transition-opacity`}
+                      onClick={() => handleBookNow(zone.title)}
+                    >
                       Explore {zone.title}
                     </button>
                   </div>
@@ -442,4 +603,4 @@ const AutoHoverTriangle = () => {
   );
 };
 
-export default AutoHoverTriangle;
+export default AutoHoverTriangle; 

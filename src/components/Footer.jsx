@@ -2,14 +2,14 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-b from-[#0b0c3d] to-[#1a1c5a] text-white px-4 sm:px-8 lg:px-16 py-12 opacity-70">
+    <footer className="bg-white opacity-90 text-black-900  px-4 sm:px-8 lg:px-16 py-12 shadow-inner">
       <div className="max-w-7xl mx-auto">
         {/* Main Footer Content */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 md:gap-12">
           {/* Logo and About */}
           <div className="col-span-2 md:col-span-1 lg:col-span-1">
             <div className="flex items-center mb-4">
-              <img src="/logo-white.svg" alt="Himrahi Adventure" className="h-10 mr-2" />
+              <img src="/logo.png" alt="Himrahi Adventure" className="h-10 mr-2" />
               <span className="text-xl font-bold">Himrahi</span>
             </div>
             <p className="text-gray-300 text-sm mb-4">
@@ -106,9 +106,9 @@ const Footer = () => {
             <h3 className="text-lg font-bold mb-2">Stay Updated on New Adventures</h3>
             <p className="text-gray-300 text-sm mb-4">Subscribe to get exclusive offers and adventure tips</p>
             <div className="flex flex-col sm:flex-row gap-2">
-              <input 
-                type="email" 
-                placeholder="Your email address" 
+              <input
+                type="email"
+                placeholder="AdventureTriangle@gmail.com"
                 className="flex-grow px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-emerald-400 text-white placeholder-gray-400"
               />
               <button className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold px-6 py-3 rounded-lg transition-all shadow-lg">
@@ -120,13 +120,13 @@ const Footer = () => {
 
         {/* Copyright and Legal */}
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm mb-4 md:mb-0">
+          <p className="text-gray-800 text-sm mb-4 md:mb-0">
             © 2025 Himrahi Adventure Triangle. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <a href="#" className="text-gray-400 hover:text-white text-sm transition">Privacy Policy</a>
-            <a href="#" className="text-gray-400 hover:text-white text-sm transition">Terms of Service</a>
-            <a href="#" className="text-gray-400 hover:text-white text-sm transition">Cookie Policy</a>
+            <a href="#" className="text-gray-700 hover:text-white text-sm transition">Privacy Policy</a>
+            <a href="#" className="text-gray-700 hover:text-white text-sm transition">Terms of Service</a>
+            <a href="#" className="text-gray-700 hover:text-white text-sm transition">Cookie Policy</a>
           </div>
         </div>
       </div>

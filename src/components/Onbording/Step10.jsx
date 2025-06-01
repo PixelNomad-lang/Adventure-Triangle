@@ -170,7 +170,7 @@ function Step10() {
         
         <QuestionContainer>
           <QuestionLabel>
-            What cosmic force draws you to guide adventurers?
+            Are You  Provide  Any  Certificate ?
           </QuestionLabel>
           <StyledTextarea
             rows="3"
